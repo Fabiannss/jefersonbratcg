@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JefersonBRATCG | E-Commerce & Leilões Pokémon TCG • Manaus - AM</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body {
+      background-color: #090B10;
+      color: #f8fafc;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #090B10; }
+    ::-webkit-scrollbar-thumb { background: #263147; border-radius: 9999px; }
+  </style>
+</head>
+<body class="min-h-screen bg-[#090B10] text-slate-100 antialiased">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+
+    const now = Date.now();
+
+    const INITIAL_PRODUCTS = [
+      {
+        id: "prod-pikachu-sir-sv8",
+        title: "Pikachu ex (238/191) - Special Illustration Rare (Terastal)",
+        category: "SINGLE",
+        setName: "Escarlate e Violeta: Fagulhas Impetuosas (SV08)",
+        cardNumber: "238/191",
+        rarity: "RARA",
+        rarityDetail: "Special Illustration Rare (SIR) • Terastal Stellar",
+        condition: "NM",
+        language: "PT-BR",
+        price: 1890.00,
+        originalPrice: 2150.00,
+        stock: 2,
+        description: "Carta chase absoluta de Fagulhas Impetuosas! Tirada direto do booster para Perfect Fit + Sleeve Dragon Shield + TopLoader em Manaus. Centralização impecável, sem whitening nas bordas e textura Terastal cristalina.",
+        images: [
+          "https://images.pokemontcg.io/sv8/238_hires.png",
+          "https://images.pokemontcg.io/sv8/57_hires.png"
+        ],
+        videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-sparkles-and-gold-dust-floating-in-the-dark-41763-large.mp4",
+        isPromo: true
+      },
+      {
+        id: "prod-charizard-151-sir",
+        title: "Charizard ex (199/165) - Ilustração Especial Rara (SIR)",
+        category: "SINGLE",
+        setName: "Escarlate e Violeta: Coleção 151 (SV3.5)",
+        cardNumber: "199/165",
+        rarity: "RARA",
+        rarityDetail: "Special Illustration Rare (SIR) • Alt Art",
+        condition: "NM",
+        language: "PT-BR",
+        price: 949.90,
+        originalPrice: 1099.90,
+        stock: 1,
+        description: "O clássico Charizard ex voando sobre o cânion da Coleção 151. Estado Near Mint (NM), superfície espelhada sem riscos. Disponível para entrega presencial nos shoppings de Manaus ou envio nacional blindado.",
+        images: [
+          "https://images.pokemontcg.io/sv3pt5/199_hires.png",
+          "https://images.pokemontcg.io/sv3pt5/183_hires.png"
+        ],
+        videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-abstract-golden-particles-floating-42466-large.mp4",
+        isPromo: true
+      },
+      {
+        id: "prod-umbreon-vmax-alt",
+        title: "Umbreon VMAX (215/203) - Moonbreon Alternate Art Secret",
+        category: "SINGLE",
+        setName: "Espada e Escudo: Céus em Evolução (Evolving Skies)",
+        cardNumber: "215/203",
+        rarity: "RARA",
+        rarityDetail: "Hyper / Alternate Art Secret Rare",
+        condition: "NM",
+        language: "EN",
+        price: 5490.00,
+        originalPrice: 5890.00,
+        stock: 1,
+        description: "O lendário Moonbreon (215/203), condição Near Mint impecável. Acompanha vídeo detalhado mostrando a textura do telhado e da lua.",
+        images: ["https://images.pokemontcg.io/swsh7/215_hires.png"],
+        videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-sparkles-and-gold-dust-floating-in-the-dark-41763-large.mp4",
+        isPromo: true
+      },
+      {
+        id: "prod-fezandipiti-ex-double",
+        title: "Fezandipiti ex (038/064) - Ultra Rara Regular (Staple)",
+        category: "SINGLE",
+        setName: "Escarlate e Violeta: Fábula Nebulosa (SFA)",
+        cardNumber: "038/064",
+        rarity: "MEDIA",
+        rarityDetail: "Double Rare / Ultra Rara Regular",
+        condition: "NM",
+        language: "PT-BR",
+        price: 89.90,
+        stock: 6,
+        description: "Staple indispensável para qualquer deck competitivo com a habilidade Virar a Mesa. Pronta entrega imediata em Manaus!",
+        images: ["https://images.pokemontcg.io/sv6pt5/38_hires.png"],
+        isPromo: false
+      },
+      {
+        id: "prod-snorlax-promo-151",
+        title: "Snorlax (SVP 051) - Carta Promocional Ilustração Rara",
+        category: "SINGLE",
+        setName: "Black Star Promos - Escarlate e Violeta",
+        cardNumber: "SVP 051",
+        rarity: "MEDIA",
+        rarityDetail: "Promo Holo Illustration Rare (Lacrada)",
+        condition: "SEALED",
+        language: "PT-BR",
+        price: 44.90,
+        stock: 10,
+        description: "Carta promocional exclusiva da ETB Coleção 151 ainda lacrada no plástico original de fábrica.",
+        images: ["https://images.pokemontcg.io/svp/51_hires.png"],
+        isPromo: true
+      },
+      {
+        id: "prod-buddy-buddy-poffin",
+        title: "Poffin de Colega / Buddy-Buddy Poffin (144/162)",
+        category: "SINGLE",
+        setName: "Escarlate e Violeta: Forças Temporais",
+        cardNumber: "144/162",
+        rarity: "BASICA",
+        rarityDetail: "Incomum Regular (Playable)",
+        condition: "NM",
+        language: "PT-BR",
+        price: 16.90,
+        stock: 20,
+        description: "Item essencial do formato Padrão para buscar 2 Pokémon Básicos com até 70 PS.",
+        images: ["https://images.pokemontcg.io/sv5/144_hires.png"],
+        isPromo: false
+      },
+      {
+        id: "prod-etb-fagulhas-impetuosas",
+        title: "ETB Elite Trainer Box - Fagulhas Impetuosas (Lacrada Copag)",
+        category: "ETB",
+        setName: "Escarlate e Violeta: Fagulhas Impetuosas (SV08)",
+        rarity: "RARA",
+        rarityDetail: "ETB Selada de Fábrica • 20 Boosters + Promo Magneton",
+        condition: "SEALED",
+        language: "PT-BR",
+        price: 379.90,
+        originalPrice: 429.90,
+        stock: 9,
+        description: "Caixa de Treinador Avançado (ETB) 100% Lacrada de fábrica com plástico intacto, contendo 20 pacotes de booster, 1 carta promo Full Art do Magneton, 65 sleeves exclusivos e dados.",
+        images: ["https://images.pokemontcg.io/svp/159_hires.png", "https://images.pokemontcg.io/sv8/238_hires.png"],
+        isPromo: true
+      },
+      {
+        id: "prod-etb-colecao-151",
+        title: "ETB Elite Trainer Box - Coleção 151 (Lacrada Original)",
+        category: "ETB",
+        setName: "Escarlate e Violeta: Coleção 151 (SV3.5)",
+        rarity: "RARA",
+        rarityDetail: "ETB Selada Colecionador • 20 Boosters + Promo Snorlax",
+        condition: "SEALED",
+        language: "PT-BR",
+        price: 689.90,
+        originalPrice: 749.90,
+        stock: 3,
+        description: "A ETB mais desejada da era Escarlate e Violeta! Caixa impecável, cantos vivos sem amassados, armazenada em Manaus.",
+        images: ["https://images.pokemontcg.io/svp/51_hires.png", "https://images.pokemontcg.io/sv3pt5/199_hires.png"],
+        isPromo: false
+      }
+    ];
+
+    const INITIAL_AUCTIONS = [
+      {
+        id: "auc-1",
+        productId: "prod-charizard-151-sir",
+        product: INITIAL_PRODUCTS[1],
+        startingBid: 650.00,
+        currentBid: 820.00,
+        minIncrement: 15.00,
+        bidsCount: 9,
+        endsAt: new Date(now + 1000 * 60 * 44 + 1000 * 19).toISOString(),
+        status: "ACTIVE",
+        winnerName: "Lucas M. (Adrianópolis - Manaus)",
+        bids: [
+          { id: "b1", bidderName: "Lucas M.", bidderNeighborhood: "Adrianópolis - Manaus/AM", amount: 820.00, createdAt: new Date(now - 95000).toISOString() },
+          { id: "b2", bidderName: "Rafael T.", bidderNeighborhood: "Parque 10 - Manaus/AM", amount: 800.00, createdAt: new Date(now - 340000).toISOString() }
+        ]
+      },
+      {
+        id: "auc-2",
+        productId: "prod-etb-colecao-151",
+        product: INITIAL_PRODUCTS[7],
+        startingBid: 450.00,
+        currentBid: 560.00,
+        minIncrement: 10.00,
+        bidsCount: 7,
+        endsAt: new Date(now + 1000 * 60 * 115 + 1000 * 40).toISOString(),
+        status: "ACTIVE",
+        winnerName: "Matheus K. (Ponta Negra - Manaus)",
+        bids: [
+          { id: "b3", bidderName: "Matheus K.", bidderNeighborhood: "Ponta Negra - Manaus/AM", amount: 560.00, createdAt: new Date(now - 210000).toISOString() }
+        ]
+      },
+      {
+        id: "auc-3",
+        productId: "prod-pikachu-sir-sv8",
+        product: INITIAL_PRODUCTS[0],
+        startingBid: 1200.00,
+        currentBid: 1580.00,
+        minIncrement: 25.00,
+        bidsCount: 12,
+        endsAt: new Date(now + 1000 * 60 * 17 + 1000 * 50).toISOString(),
+        status: "ACTIVE",
+        winnerName: "Gabriel A. (Vieiralves - Manaus)",
+        bids: [
+          { id: "b4", bidderName: "Gabriel A.", bidderNeighborhood: "Vieiralves - Manaus/AM", amount: 1580.00, createdAt: new Date(now - 45000).toISOString() }
+        ]
+      }
+    ];
+
+    function App() {
+      const [view, setView] = useState("HOME"); // HOME | DETAIL | AUCTIONS | CHECKOUT | ADMIN
+      const [selectedProduct, setSelectedProduct] = useState(INITIAL_PRODUCTS[0]);
+      const [products, setProducts] = useState(INITIAL_PRODUCTS);
+      const [auctions, setAuctions] = useState(INITIAL_AUCTIONS);
+      const [cart, setCart] = useState([]);
+      const [searchQuery, setSearchQuery] = useState("");
+      const [categoryFilter, setCategoryFilter] = useState("ALL");
+      const [rarityFilter, setRarityFilter] = useState("ALL");
+      const [isAdmin, setIsAdmin] = useState(false);
+      const [adminPassword, setAdminPassword] = useState("");
+      const [adminError, setAdminError] = useState("");
+      const [tick, setTick] = useState(0);
+      const [toast, setToast] = useState("");
+
+      useEffect(() => {
+        const t = setInterval(() => setTick(x => x + 1), 1000);
+        return () => clearInterval(t);
+      }, []);
+
+      const showToast = (msg) => {
+        setToast(msg);
+        setTimeout(() => setToast(""), 3500);
+      };
+
+      const addToCart = (prod) => {
+        setCart(prev => {
+          const ex = prev.find(i => i.product.id === prod.id);
+          if (ex) return prev.map(i => i.product.id === prod.id ? { ...i, quantity: i.quantity + 1 } : i);
+          return [...prev, { product: prod, quantity: 1 }];
+        });
+        showToast(`"${prod.title}" adicionado ao carrinho!`);
+      };
+
+      const placeBid = (auctionId, amount, bidderName) => {
+        const target = auctions.find(a => a.id === auctionId);
+        if (!target) return;
+        const minReq = target.currentBid + target.minIncrement;
+        if (amount < minReq) {
+          showToast(`Lance mínimo é R$ ${minReq.toFixed(2)}`);
+          return;
+        }
+        const finalBidder = bidderName?.trim() || "Colecionador Manaus";
+        setAuctions(prev => prev.map(a => {
+          if (a.id !== auctionId) return a;
+          return {
+            ...a,
+            currentBid: amount,
+            bidsCount: a.bidsCount + 1,
+            winnerName: `${finalBidder} (Manaus - AM)`,
+            bids: [{ id: "b-" + Date.now(), bidderName: finalBidder, bidderNeighborhood: "Manaus - AM", amount, createdAt: new Date().toISOString() }, ...a.bids]
+          };
+        }));
+        showToast(`Lance de R$ ${amount.toFixed(2)} confirmado em tempo real!`);
+      };
+
+      const filteredProducts = useMemo(() => {
+        return products.filter(p => {
+          const cOk = categoryFilter === "ALL" || p.category === categoryFilter;
+          const rOk = rarityFilter === "ALL" || p.rarity === rarityFilter;
+          const q = searchQuery.trim().toLowerCase();
+          const sOk = !q || p.title.toLowerCase().includes(q) || p.setName.toLowerCase().includes(q);
+          return cOk && rOk && sOk;
+        });
+      }, [products, categoryFilter, rarityFilter, searchQuery]);
+
+      const formatRemaining = (endsAt) => {
+        const diff = new Date(endsAt).getTime() - Date.now();
+        if (diff <= 0) return "ENCERRADO";
+        const s = Math.floor(diff / 1000);
+        const h = String(Math.floor(s / 3600)).padStart(2, "0");
+        const m = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
+        const sec = String(s % 60).padStart(2, "0");
+        return `${h}h : ${m}m : ${sec}s`;
+      };
+
+      return (
+        <div className="min-h-screen flex flex-col">
+          {/* Topbar Logística Manaus - AM */}
+          <div className="bg-gradient-to-r from-amber-500/20 via-yellow-500/15 to-emerald-500/20 border-b border-yellow-500/30 text-xs">
+            <div className="max-w-7xl mx-auto px-4 py-2 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="bg-yellow-400 text-slate-950 font-black px-2.5 py-0.5 rounded-full text-[11px]">
+                  📍 MANAUS - AM
+                </span>
+                <span>
+                  Logística Facilitada em Manaus: <strong className="text-yellow-300">Motoboy Expresso (2h)</strong>,{" "}
+                  <strong className="text-emerald-300">Pontos de Encontro Grátis nos Shoppings</strong> e{" "}
+                  <strong className="text-cyan-300">Retirada Local</strong> + Correios p/ todo o Brasil!
+                </span>
+              </div>
+              <span className="text-yellow-400 font-bold text-[11px]">⚡ 100% Exclusivo Pokémon TCG</span>
+            </div>
+          </div>
+
+          {/* Header */}
+          <header className="sticky top-0 z-40 bg-[#090B10]/95 backdrop-blur-md border-b border-slate-800">
+            <div className="max-w-7xl mx-auto px-4 py-3.5 flex flex-wrap items-center justify-between gap-4">
+              <button onClick={() => setView("HOME")} className="flex items-center gap-3 text-left">
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-yellow-400 to-red-600 p-0.5">
+                  <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center font-black text-lg text-yellow-400">
+                    JB
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xl font-black text-white">Jeferson<span className="text-yellow-400">BRA</span>TCG</span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-500/20 text-red-300 border border-red-500/30">PKMN ONLY</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400">Singles • ETBs Seladas • Leilões Ao Vivo • Manaus/AM</p>
+                </div>
+              </button>
+
+              <div className="flex-1 max-w-md">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={e => { setSearchQuery(e.target.value); if (view !== "HOME") setView("HOME"); }}
+                  placeholder="Buscar Pikachu SIR, Charizard 151, ETB Fagulhas..."
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-xs text-white focus:border-yellow-400 focus:outline-none"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setView("HOME")}
+                  className={`px-3 py-2 rounded-xl text-xs font-bold ${view === "HOME" ? "bg-yellow-400 text-slate-950" : "bg-slate-900 text-slate-200 border border-slate-800"}`}
+                >
+                  Catálogo
+                </button>
+                <button
+                  onClick={() => setView("AUCTIONS")}
+                  className={`px-3 py-2 rounded-xl text-xs font-bold ${view === "AUCTIONS" ? "bg-red-500 text-white" : "bg-slate-900 text-red-300 border border-red-500/30"}`}
+                >
+                  🔥 Leilões ({auctions.length})
+                </button>
+                <button
+                  onClick={() => setView("ADMIN")}
+                  className={`px-3 py-2 rounded-xl text-xs font-bold ${view === "ADMIN" ? "bg-purple-500 text-white" : "bg-slate-900 text-purple-300 border border-purple-500/30"}`}
+                >
+                  🔒 Admin (/admin)
+                </button>
+                <button
+                  onClick={() => setView("CHECKOUT")}
+                  className="px-3.5 py-2 rounded-xl bg-emerald-400 text-slate-950 font-black text-xs"
+                >
+                  🛒 Carrinho ({cart.reduce((s, i) => s + i.quantity, 0)})
+                </button>
+              </div>
+            </div>
+          </header>
+
+          {toast && (
+            <div className="fixed bottom-5 right-5 z-50 px-5 py-3 rounded-2xl bg-yellow-400 text-slate-950 font-black text-xs shadow-2xl">
+              {toast}
+            </div>
+          )}
+
+          {/* CONTEÚDO PRINCIPAL */}
+          <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8 space-y-10">
+            {view === "HOME" && (
+              <>
+                {/* Banner Hero */}
+                <div className="p-8 rounded-3xl bg-gradient-to-br from-yellow-500/20 via-[#121722] to-slate-950 border border-slate-800 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                  <div className="lg:col-span-7 space-y-4">
+                    <span className="inline-block px-3 py-1 rounded-full bg-yellow-400/20 border border-yellow-400/40 text-yellow-300 text-xs font-extrabold">
+                      ✨ DESTAQUE CHASE & LEILÕES • MANAUS/AM
+                    </span>
+                    <h1 className="text-3xl sm:text-4xl font-black text-white leading-tight">
+                      Pikachu ex SIR (238/191) & ETBs Seladas com Entrega Expressa em Manaus
+                    </h1>
+                    <p className="text-sm text-slate-300">
+                      Foco 100% em Pokémon TCG! Cartas Avulsas inspecionadas com fotos em alta resolução e vídeo da holografia,
+                      ETBs lacradas Copag e Leilões em tempo real.
+                    </p>
+                    <div className="flex flex-wrap gap-3 pt-1">
+                      <button
+                        onClick={() => { setSelectedProduct(products[0]); setView("DETAIL"); }}
+                        className="px-5 py-3 rounded-xl bg-yellow-400 text-slate-950 font-black text-xs"
+                      >
+                        Ver Carta + Vídeo Holografia
+                      </button>
+                      <button
+                        onClick={() => setView("AUCTIONS")}
+                        className="px-5 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white font-bold text-xs"
+                      >
+                        Ir para Sala de Leilões Ao Vivo
+                      </button>
+                    </div>
+                  </div>
+                  <div className="lg:col-span-5 flex justify-center">
+                    <img src={products[0].images[0]} className="w-56 rounded-2xl shadow-2xl border border-white/10" />
+                  </div>
+                </div>
+
+                {/* Filtros Simplificados (Tipo + 3 Níveis de Raridade) */}
+                <div className="p-6 rounded-3xl bg-[#121722] border border-slate-800 space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h2 className="text-lg font-black text-white">Filtro Simplificado de Catálogo Pokémon TCG</h2>
+                    <span className="text-xs text-slate-400">{filteredProducts.length} produtos exibidos</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <span className="text-xs font-bold text-slate-400">1. Tipo de Produto:</span>
+                      <div className="grid grid-cols-3 gap-2">
+                        <button onClick={() => setCategoryFilter("ALL")} className={`py-2 rounded-xl text-xs font-extrabold border ${categoryFilter === "ALL" ? "bg-yellow-400 text-slate-950 border-yellow-400" : "bg-slate-900 text-slate-300 border-slate-800"}`}>Todos</button>
+                        <button onClick={() => setCategoryFilter("SINGLE")} className={`py-2 rounded-xl text-xs font-extrabold border ${categoryFilter === "SINGLE" ? "bg-blue-500 text-white border-blue-400" : "bg-slate-900 text-slate-300 border-slate-800"}`}>Cartas Avulsas</button>
+                        <button onClick={() => setCategoryFilter("ETB")} className={`py-2 rounded-xl text-xs font-extrabold border ${categoryFilter === "ETB" ? "bg-amber-500 text-slate-950 border-amber-400" : "bg-slate-900 text-slate-300 border-slate-800"}`}>ETB Selado</button>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <span className="text-xs font-bold text-slate-400">2. Raridade (3 Níveis Claros):</span>
+                      <div className="grid grid-cols-4 gap-2">
+                        <button onClick={() => setRarityFilter("ALL")} className={`py-2 rounded-xl text-xs font-extrabold border ${rarityFilter === "ALL" ? "bg-white text-slate-950" : "bg-slate-900 text-slate-300 border-slate-800"}`}>Todas</button>
+                        <button onClick={() => setRarityFilter("BASICA")} className={`py-2 rounded-xl text-xs font-extrabold border ${rarityFilter === "BASICA" ? "bg-slate-200 text-slate-950" : "bg-slate-900 text-slate-300 border-slate-800"}`}>• Básicas</button>
+                        <button onClick={() => setRarityFilter("MEDIA")} className={`py-2 rounded-xl text-xs font-extrabold border ${rarityFilter === "MEDIA" ? "bg-cyan-400 text-slate-950" : "bg-slate-900 text-cyan-300 border-cyan-500/30"}`}>•• Médias</button>
+                        <button onClick={() => setRarityFilter("RARA")} className={`py-2 rounded-xl text-xs font-extrabold border ${rarityFilter === "RARA" ? "bg-purple-500 text-white" : "bg-slate-900 text-purple-300 border-purple-500/30"}`}>••• Raras (SIR)</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Grade de Produtos */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {filteredProducts.map(prod => (
+                    <div key={prod.id} className="rounded-2xl bg-[#131926] border border-slate-800 hover:border-yellow-400/50 transition p-4 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between text-[10px] font-bold mb-2">
+                          <span className="px-2 py-0.5 rounded bg-slate-800 text-yellow-400">{prod.category === "ETB" ? "ETB SELADO" : "CARTA AVULSA"}</span>
+                          <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300">{prod.rarity} • {prod.condition}</span>
+                        </div>
+                        <div
+                          onClick={() => { setSelectedProduct(prod); setView("DETAIL"); }}
+                          className="cursor-pointer py-3 flex justify-center bg-slate-950 rounded-xl mb-3"
+                        >
+                          <img src={prod.images[0]} className="h-44 object-contain hover:scale-105 transition" />
+                        </div>
+                        <p className="text-[11px] text-slate-400 truncate">{prod.setName}</p>
+                        <h3
+                          onClick={() => { setSelectedProduct(prod); setView("DETAIL"); }}
+                          className="text-sm font-extrabold text-white hover:text-yellow-400 cursor-pointer mt-0.5 line-clamp-2"
+                        >
+                          {prod.title}
+                        </h3>
+                      </div>
+                      <div className="pt-3 mt-3 border-t border-slate-800 space-y-2">
+                        <div className="flex items-baseline justify-between">
+                          <span className="text-lg font-black text-yellow-400">R$ {prod.price.toFixed(2).replace(".", ",")}</span>
+                          <span className="text-[11px] text-slate-400">{prod.stock} un.</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <button onClick={() => addToCart(prod)} className="flex-1 py-2 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-xs">
+                            Comprar
+                          </button>
+                          <button onClick={() => { setSelectedProduct(prod); setView("DETAIL"); }} className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold">
+                            Detalhes
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* DETALHES DO PRODUTO + VÍDEO DE HOLOGRAFIA */}
+            {view === "DETAIL" && selectedProduct && (
+              <div className="p-6 sm:p-8 rounded-3xl bg-[#121722] border border-slate-800 grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div className="lg:col-span-5 space-y-4">
+                  <div className="p-6 rounded-2xl bg-slate-950 flex justify-center">
+                    <img src={selectedProduct.images[0]} className="max-h-80 object-contain rounded-xl" />
+                  </div>
+                  {selectedProduct.videoUrl && (
+                    <div className="p-4 rounded-2xl bg-slate-900 border border-cyan-500/30 space-y-2">
+                      <span className="text-xs font-extrabold text-cyan-300 block">🎥 Vídeo de Demonstração da Holografia & Estado Real:</span>
+                      <video src={selectedProduct.videoUrl} controls autoPlay muted loop className="w-full h-44 object-cover rounded-xl" />
+                    </div>
+                  )}
+                </div>
+                <div className="lg:col-span-7 space-y-4">
+                  <button onClick={() => setView("HOME")} className="text-xs text-yellow-400 font-bold">← Voltar ao Catálogo</button>
+                  <div className="flex gap-2">
+                    <span className="px-2.5 py-1 rounded bg-yellow-400/20 text-yellow-300 text-xs font-bold">{selectedProduct.category}</span>
+                    <span className="px-2.5 py-1 rounded bg-purple-500/20 text-purple-300 text-xs font-bold">Raridade: {selectedProduct.rarity}</span>
+                    <span className="px-2.5 py-1 rounded bg-emerald-500/20 text-emerald-300 text-xs font-bold">Condição: {selectedProduct.condition}</span>
+                  </div>
+                  <h1 className="text-2xl sm:text-3xl font-black text-white">{selectedProduct.title}</h1>
+                  <p className="text-xs text-slate-400">{selectedProduct.setName} • {selectedProduct.rarityDetail}</p>
+                  <div className="text-3xl font-black text-yellow-400">R$ {selectedProduct.price.toFixed(2).replace(".", ",")}</div>
+                  <p className="text-sm text-slate-300 leading-relaxed">{selectedProduct.description}</p>
+                  <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-xs space-y-1">
+                    <strong className="text-emerald-300 block">📍 Facilidades de Entrega em Manaus - AM:</strong>
+                    <p>• Ponto de Encontro GRÁTIS (Amazonas Shopping, Manauara, Ponta Negra, Sumaúma)</p>
+                    <p>• Motoboy Expresso Manaus em até 2h (a partir de R$ 12,00)</p>
+                    <p>• Envio Nacional via Correios SEDEX/PAC com embalagem blindada (TopLoader + Sleeve)</p>
+                  </div>
+                  <button onClick={() => addToCart(selectedProduct)} className="w-full py-4 rounded-2xl bg-yellow-400 text-slate-950 font-black text-sm">
+                    Adicionar ao Carrinho
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* SALA DE LEILÕES EM TEMPO REAL */}
+            {view === "AUCTIONS" && (
+              <div className="space-y-6">
+                <div className="p-6 rounded-3xl bg-gradient-to-r from-red-500/20 to-[#121722] border border-red-500/30">
+                  <h1 className="text-2xl sm:text-3xl font-black text-white">🔥 Leilões Pokémon TCG em Tempo Real</h1>
+                  <p className="text-xs text-slate-300 mt-1">Contador regressivo ao vivo, lance mínimo automático e retirada gratuita nos shoppings de Manaus.</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {auctions.map(auc => {
+                    const minNext = auc.currentBid + auc.minIncrement;
+                    return (
+                      <div key={auc.id} className="rounded-2xl bg-[#131926] border border-red-500/40 p-5 space-y-4 flex flex-col justify-between">
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center text-xs font-extrabold text-red-300 bg-red-500/15 px-3 py-1.5 rounded-xl">
+                            <span>⏱ TEMPO RESTANTE:</span>
+                            <span className="font-mono">{formatRemaining(auc.endsAt)}</span>
+                          </div>
+                          <div className="flex gap-3 items-center">
+                            <img src={auc.product.images[0]} className="w-20 h-28 object-contain bg-slate-950 rounded-xl p-1" />
+                            <div>
+                              <h3 className="text-sm font-extrabold text-white">{auc.product.title}</h3>
+                              <p className="text-[11px] text-slate-400 mt-0.5">{auc.bidsCount} lances • Líder: {auc.winnerName}</p>
+                              <div className="text-xl font-black text-yellow-400 mt-1">R$ {auc.currentBid.toFixed(2).replace(".", ",")}</div>
+                            </div>
+                          </div>
+                        </div>
+                        <form
+                          onSubmit={e => {
+                            e.preventDefault();
+                            const val = parseFloat(e.target.elements.bidAmount.value);
+                            const name = e.target.elements.bidder.value;
+                            placeBid(auc.id, val, name);
+                          }}
+                          className="space-y-2 pt-3 border-t border-slate-800"
+                        >
+                          <input name="bidder" placeholder="Seu Nome + Bairro em Manaus" className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white" />
+                          <div className="flex gap-2">
+                            <input name="bidAmount" type="number" step="1" defaultValue={minNext} className="w-28 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-yellow-400" />
+                            <button type="submit" className="flex-1 py-2 rounded-xl bg-gradient-to-r from-red-500 to-amber-500 text-slate-950 font-black text-xs">
+                              Dar Lance (Mín R$ {minNext})
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* CHECKOUT MANAUS */}
+            {view === "CHECKOUT" && (
+              <div className="p-6 sm:p-8 rounded-3xl bg-[#121722] border border-slate-800 space-y-6">
+                <h1 className="text-2xl font-black text-white">Checkout & Entrega Facilitada Manaus - AM</h1>
+                {cart.length === 0 ? (
+                  <p className="text-sm text-slate-400">Seu carrinho está vazio. Adicione Cartas Avulsas ou ETBs Seladas!</p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-bold text-yellow-400">Escolha a Modalidade de Entrega:</h3>
+                      <label className="block p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-400 text-xs">
+                        <input type="radio" name="deliv" defaultChecked className="mr-2" />
+                        <strong>Ponto de Encontro em Manaus (GRÁTIS - R$ 0,00)</strong> — Amazonas Shopping, Manauara, Ponta Negra ou Sumaúma
+                      </label>
+                      <label className="block p-3.5 rounded-xl bg-slate-900 border border-slate-800 text-xs">
+                        <input type="radio" name="deliv" className="mr-2" />
+                        <strong>Motoboy Expresso Manaus (R$ 12,00 a R$ 18,00)</strong> — Entrega no mesmo dia em até 2h
+                      </label>
+                      <label className="block p-3.5 rounded-xl bg-slate-900 border border-slate-800 text-xs">
+                        <input type="radio" name="deliv" className="mr-2" />
+                        <strong>Correios SEDEX / PAC Nacional Blindado</strong> — Envio para outros estados
+                      </label>
+                    </div>
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-bold text-white">Itens no Pedido:</h3>
+                      {cart.map(i => (
+                        <div key={i.product.id} className="flex justify-between text-xs border-b border-slate-800 pb-2">
+                          <span>{i.quantity}x {i.product.title}</span>
+                          <strong className="text-yellow-400">R$ {(i.product.price * i.quantity).toFixed(2)}</strong>
+                        </div>
+                      ))}
+                      <button
+                        onClick={() => { setCart([]); showToast("Pedido confirmado! Entraremos em contato via WhatsApp em Manaus."); setView("HOME"); }}
+                        className="w-full py-3.5 rounded-xl bg-yellow-400 text-slate-950 font-black text-xs"
+                      >
+                        Finalizar Pedido Agora
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* PAINEL ADMIN PROTEGIDO (/admin) */}
+            {view === "ADMIN" && (
+              <div className="p-6 sm:p-8 rounded-3xl bg-[#121722] border border-purple-500/40 space-y-6">
+                {!isAdmin ? (
+                  <form
+                    onSubmit={e => {
+                      e.preventDefault();
+                      if (adminPassword === "admin123") { setIsAdmin(true); setAdminError(""); }
+                      else setAdminError("Senha incorreta! Use a senha de demonstração: admin123");
+                    }}
+                    className="max-w-md mx-auto space-y-4 py-6"
+                  >
+                    <h2 className="text-xl font-black text-white">🔒 Área Restrita do Administrador (/admin)</h2>
+                    <p className="text-xs text-slate-400">Digite a senha administrativa (<code className="text-yellow-400">admin123</code>) para gerenciar Cartas Avulsas, ETBs, Fotos Hi-Res, Vídeos de Holografia e Leilões.</p>
+                    <input
+                      type="password"
+                      value={adminPassword}
+                      onChange={e => setAdminPassword(e.target.value)}
+                      placeholder="Senha (admin123)"
+                      className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"
+                    />
+                    {adminError && <p className="text-xs text-red-400 font-bold">{adminError}</p>}
+                    <button type="submit" className="w-full py-3 rounded-xl bg-purple-500 text-white font-black text-xs">Desbloquear Painel Admin</button>
+                  </form>
+                ) : (
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                      <h2 className="text-xl font-black text-white">Painel Admin Desbloqueado • Gestão de Catálogo Pokémon TCG</h2>
+                      <button onClick={() => setIsAdmin(false)} className="text-xs text-red-400 underline">Bloquear / Sair</button>
+                    </div>
+                    <form
+                      onSubmit={e => {
+                        e.preventDefault();
+                        const f = e.target.elements;
+                        const newProd = {
+                          id: "prod-" + Date.now(),
+                          title: f.title.value,
+                          category: f.category.value,
+                          setName: f.setName.value,
+                          rarity: f.rarity.value,
+                          rarityDetail: f.rarity.value === "RARA" ? "Special Illustration Rare (SIR)" : "Holo / Regular",
+                          condition: f.condition.value,
+                          price: parseFloat(f.price.value) || 99.90,
+                          stock: parseInt(f.stock.value, 10) || 1,
+                          description: f.description.value,
+                          images: [f.image.value || "https://images.pokemontcg.io/sv8/238_hires.png"],
+                          videoUrl: f.videoUrl.value || undefined
+                        };
+                        setProducts([newProd, ...products]);
+                        e.target.reset();
+                        showToast("Produto cadastrado no catálogo com sucesso!");
+                      }}
+                      className="grid grid-cols-1 md:grid-cols-3 gap-3 p-5 rounded-2xl bg-slate-900 border border-slate-800"
+                    >
+                      <input required name="title" placeholder="Título da Carta ou ETB *" className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs" />
+                      <select name="category" className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs">
+                        <option value="SINGLE">Carta Avulsa (Single)</option>
+                        <option value="ETB">ETB Selado</option>
+                      </select>
+                      <select name="rarity" className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs">
+                        <option value="RARA">Raridade: Rara (SIR / Alt Art / Secreta)</option>
+                        <option value="MEDIA">Raridade: Média (Holo / Reverse / Ultra Reg)</option>
+                        <option value="BASICA">Raridade: Básica (Comum / Incomum)</option>
+                      </select>
+                      <input required name="setName" defaultValue="Escarlate e Violeta: Fagulhas Impetuosas" placeholder="Coleção *" className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs" />
+                      <select name="condition" className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs">
+                        <option value="NM">Near Mint (NM)</option>
+                        <option value="LP">Lightly Played (LP)</option>
+                        <option value="SEALED">Lacrado (SEALED)</option>
+                      </select>
+                      <input required name="price" type="number" step="0.1" placeholder="Preço R$ *" className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-yellow-400 font-bold" />
+                      <input required name="stock" type="number" defaultValue="1" placeholder="Estoque *" className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs" />
+                      <input name="image" placeholder="URL Foto Alta Resolução" className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs" />
+                      <input name="videoUrl" placeholder="URL Vídeo Curto Holografia (MP4)" className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs" />
+                      <textarea name="description" placeholder="Descrição de conservação e textura..." className="md:col-span-2 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs" />
+                      <button type="submit" className="py-2.5 rounded-xl bg-yellow-400 text-slate-950 font-black text-xs">+ Cadastrar Carta / ETB</button>
+                    </form>
+
+                    <div className="space-y-2">
+                      {products.map(p => (
+                        <div key={p.id} className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between text-xs">
+                          <span><strong>{p.title}</strong> ({p.category} • {p.rarity} • {p.condition}) — R$ {p.price.toFixed(2)}</span>
+                          <button onClick={() => setProducts(products.filter(x => x.id !== p.id))} className="text-red-400 hover:underline font-bold">Excluir</button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </main>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
