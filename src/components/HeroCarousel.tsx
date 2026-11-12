@@ -62,7 +62,7 @@ export function HeroCarousel() {
   const current = SLIDES[index];
 
   return (
-    <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-800 bg-[#0E131F] shadow-2xl">
+    <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-800 bg-tcg-surface shadow-2xl">
       <div className={`bg-gradient-to-br ${current.accent} p-4 sm:p-8 lg:p-12 transition-all duration-500`}>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
           {/* Coluna de Texto */}

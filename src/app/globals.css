@@ -6,8 +6,84 @@
   color-scheme: dark;
 }
 
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   background-color: #090b10;
   color: #f8fafc;
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow-x: clip;
+}
+
+@layer base {
+  /* Foco visível e consistente para navegação por teclado */
+  :focus-visible {
+    outline: 2px solid #ffcb05;
+    outline-offset: 2px;
+  }
+
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: none;
+    border-color: #ffcb05;
+    box-shadow: 0 0 0 3px rgba(255, 203, 5, 0.18);
+  }
+}
+
+@layer components {
+  /* Padrões únicos de formulário e cartão (admin, checkout, leilões) */
+  .tcg-label {
+    @apply block mb-1 text-xs font-bold text-slate-300;
+  }
+
+  .tcg-input {
+    @apply w-full min-h-[42px] px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm sm:text-xs text-white placeholder-slate-500 transition disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .tcg-panel {
+    @apply p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-tcg-surface border border-slate-800;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Respeita a área segura de celulares com barra de gestos */
+  .pb-safe {
+    padding-bottom: max(0.375rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* Evita o zoom automático do iOS ao focar campos com fonte menor que 16px */
+@media (max-width: 639px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
