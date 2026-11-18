@@ -39,6 +39,9 @@ interface StoreContextValue {
   // Admin Product CRUD
   upsertProduct: (product: Omit<Product, "id" | "createdAt"> & { id?: string }) => void;
   deleteProduct: (productId: string) => void;
+  importProducts: (
+    items: Array<Omit<Product, "id" | "createdAt"> & { id?: string }>
+  ) => { created: number; updated: number };
   // Orders & Manaus Logistics
   createOrder: (orderData: Omit<Order, "id" | "orderCode" | "createdAt" | "status">) => Order;
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;
@@ -337,6 +340,39 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     broadcast("SYNC_PRODUCTS", next);
   };
 
+  // Importação em massa: aplica tudo numa única atualização (evita perder itens por estado desatualizado)
+  const importProducts = (
+    items: Array<Omit<Product, "id" | "createdAt"> & { id?: string }>
+  ) => {
+    if (user.role !== "ADMIN") return { created: 0, updated: 0 };
+
+    const updates = new Map<string, Omit<Product, "id" | "createdAt"> & { id?: string }>();
+    const fresh: Product[] = [];
+    const stamp = Date.now();
+    items.forEach((item, i) => {
+      if (item.id) {
+        updates.set(item.id, item);
+      } else {
+        fresh.push({
+          ...item,
+          id: `prod-${stamp}-${i}`,
+          createdAt: new Date(stamp).toISOString(),
+        });
+      }
+    });
+
+    const next = [
+      ...fresh,
+      ...products.map((p) => {
+        const patch = updates.get(p.id);
+        return patch ? { ...p, ...patch, id: p.id } : p;
+      }),
+    ];
+    setProducts(next);
+    broadcast("SYNC_PRODUCTS", next);
+    return { created: fresh.length, updated: updates.size };
+  };
+
   const createOrder = (
     orderData: Omit<Order, "id" | "orderCode" | "createdAt" | "status">
   ): Order => {
@@ -383,6 +419,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         endAuctionNow,
         upsertProduct,
         deleteProduct,
+        importProducts,
         createOrder,
         updateOrderStatus,
       }}

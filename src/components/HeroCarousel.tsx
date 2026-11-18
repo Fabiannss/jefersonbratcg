@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Flame,
+  Gavel,
   MapPin,
   Pause,
   Play,
@@ -34,15 +35,28 @@ function discountPercent(product: Product): number | null {
   return Math.round((1 - product.price / product.originalPrice) * 100);
 }
 
-export function HeroCarousel() {
-  const { products, addToCart } = useStore();
+function formatRemaining(ms: number): string {
+  if (ms <= 0) return "encerrando";
+  const total = Math.floor(ms / 1000);
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+}
 
-  // Cartas em destaque vêm do catálogo: marcadas como destaque e com estoque.
+export function HeroCarousel() {
+  const { products, auctions, addToCart } = useStore();
+
+  // Cartas com leilão ao vivo vêm primeiro; depois as marcadas como destaque (com estoque).
   const slides = useMemo(() => {
-    const featured = products.filter((p) => p.isFeatured && p.stock > 0);
-    const list = featured.length > 0 ? featured : products.filter((p) => p.stock > 0);
+    const liveIds = new Set(auctions.filter((a) => a.status === "ACTIVE").map((a) => a.productId));
+    const live = products.filter((p) => liveIds.has(p.id));
+    const featured = products.filter((p) => p.isFeatured && p.stock > 0 && !liveIds.has(p.id));
+    const fallback = products.filter((p) => p.stock > 0 && !liveIds.has(p.id));
+    const list = [...live, ...(featured.length > 0 ? featured : fallback)];
     return list.slice(0, MAX_SLIDES);
-  }, [products]);
+  }, [products, auctions]);
 
   const count = slides.length;
   const [index, setIndex] = useState(0);
@@ -50,7 +64,14 @@ export function HeroCarousel() {
   const [hovering, setHovering] = useState(false);
   const [focusInside, setFocusInside] = useState(false);
   const [addedId, setAddedId] = useState<string | null>(null);
+  const [now, setNow] = useState<number | null>(null);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
+
+  const current = count > 0 ? slides[Math.min(index, count - 1)] : undefined;
+  const activeAuction = current
+    ? auctions.find((a) => a.productId === current.id && a.status === "ACTIVE")
+    : undefined;
+  const activeAuctionId = activeAuction?.id;
 
   // Quem prefere menos movimento começa com a troca automática desligada.
   useEffect(() => {
@@ -61,6 +82,14 @@ export function HeroCarousel() {
   useEffect(() => {
     if (index >= count && count > 0) setIndex(0);
   }, [count, index]);
+
+  // Relógio de 1 segundo só quando a carta mostrada está em leilão (contagem regressiva ao vivo).
+  useEffect(() => {
+    if (!activeAuctionId) return;
+    setNow(Date.now());
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [activeAuctionId]);
 
   const goTo = useCallback(
     (target: number) => {
@@ -81,13 +110,14 @@ export function HeroCarousel() {
     return () => clearInterval(timer);
   }, [playing, hovering, focusInside, count, index]);
 
-  if (count === 0) return null;
+  if (!current) return null;
 
-  const current = slides[Math.min(index, count - 1)];
   const discount = discountPercent(current);
   const pixPrice = current.price * 0.95;
   const lastUnit = current.stock === 1;
   const justAdded = addedId === current.id;
+  const remaining =
+    activeAuction && now !== null ? new Date(activeAuction.endsAt).getTime() - now : null;
 
   const handleAdd = () => {
     addToCart(current, 1);
@@ -140,21 +170,44 @@ export function HeroCarousel() {
       onTouchEnd={onTouchEnd}
     >
       <div
-        className={`bg-gradient-to-br ${ACCENT_BY_RARITY[current.rarity]} p-4 sm:p-8 lg:p-12 transition-all duration-500 touch-pan-y`}
+        className={`bg-gradient-to-br ${ACCENT_BY_RARITY[current.rarity]} p-4 sm:p-6 lg:p-10 transition-all duration-500 touch-pan-y`}
       >
         <div
-          className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center"
+          className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-10 items-center"
           aria-live={playing ? "off" : "polite"}
           aria-atomic="true"
         >
-          {/* Coluna de texto */}
-          <div className="lg:col-span-7 space-y-3.5 sm:space-y-5 order-2 lg:order-1 text-center lg:text-left">
-            <div className="inline-flex flex-wrap items-center justify-center lg:justify-start gap-1.5 sm:gap-2">
-              <span className="px-2.5 sm:px-3 py-1 rounded-full bg-yellow-400/15 border border-yellow-400/40 text-yellow-300 text-[10px] sm:text-xs font-extrabold tracking-wide flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 shrink-0" />
-                {discount ? `Promoção: ${discount}% de desconto` : "Carta em destaque"}
-              </span>
-              {lastUnit && (
+          {/* A carta é a protagonista */}
+          <div className="flex justify-center relative order-1">
+            <Link
+              href={`/produto/${current.id}`}
+              className="relative group"
+              aria-label={`Ver detalhes: ${current.title}`}
+            >
+              <div className="absolute -inset-6 bg-gradient-to-r from-yellow-400/30 via-purple-500/30 to-cyan-400/30 rounded-3xl blur-3xl opacity-80 group-hover:opacity-100 transition" />
+              <img
+                key={current.id}
+                src={current.images[0]}
+                alt={current.title}
+                className="relative w-56 sm:w-72 lg:w-[22rem] h-auto object-contain rounded-2xl shadow-2xl transform group-hover:scale-[1.03] group-hover:-rotate-1 transition duration-500 border border-white/10"
+              />
+            </Link>
+          </div>
+
+          {/* Informação enxuta: nome, valor ao vivo e ação */}
+          <div className="order-2 space-y-4 sm:space-y-5 text-center lg:text-left">
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-1.5 sm:gap-2">
+              {activeAuction ? (
+                <span className="px-2.5 py-1 rounded-full bg-red-500/15 border border-red-500/40 text-red-300 text-[10px] sm:text-xs font-extrabold flex items-center gap-1.5">
+                  <Gavel className="w-3.5 h-3.5 shrink-0" /> Leilão ao vivo
+                </span>
+              ) : (
+                <span className="px-2.5 py-1 rounded-full bg-yellow-400/15 border border-yellow-400/40 text-yellow-300 text-[10px] sm:text-xs font-extrabold flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                  {discount ? `${discount}% de desconto` : "Em destaque"}
+                </span>
+              )}
+              {lastUnit && !activeAuction && (
                 <span className="px-2.5 py-1 rounded-full bg-red-500/15 border border-red-500/30 text-red-300 text-[10px] sm:text-xs font-bold">
                   Última unidade
                 </span>
@@ -164,75 +217,94 @@ export function HeroCarousel() {
               </span>
             </div>
 
-            <h1 className="text-xl sm:text-3xl lg:text-5xl font-black text-white leading-tight tracking-tight">
+            <h1 className="text-lg sm:text-2xl lg:text-3xl font-black text-white leading-tight tracking-tight line-clamp-2">
               {current.title}
             </h1>
 
-            <p className="text-xs sm:text-sm text-slate-400">
-              {current.setName} • {current.rarityDetail}
-            </p>
-
-            <p className="text-xs sm:text-base text-slate-300 leading-relaxed max-w-2xl mx-auto lg:mx-0 line-clamp-3">
-              {current.description}
-            </p>
-
-            <div className="flex flex-wrap items-end justify-center lg:justify-start gap-x-4 gap-y-1">
-              <div>
-                {current.originalPrice && discount && (
-                  <span className="block text-xs text-slate-500 line-through">
-                    {brl(current.originalPrice)}
-                  </span>
-                )}
-                <span className="block text-2xl sm:text-3xl font-black text-white">
-                  {brl(current.price)}
-                </span>
-              </div>
-              <span className="text-xs sm:text-sm font-bold text-emerald-400 pb-1">
-                {brl(pixPrice)} no PIX (-5%)
-              </span>
+            {/* Valor atual */}
+            <div className="inline-block w-full sm:w-auto sm:min-w-[19rem] rounded-2xl border border-yellow-400/40 bg-slate-900/80 px-5 py-4 text-left">
+              {activeAuction ? (
+                <>
+                  <div className="flex items-center gap-2 text-[11px] sm:text-xs font-bold text-red-300">
+                    <span className="relative flex h-2 w-2" aria-hidden="true">
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping" />
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+                    </span>
+                    {activeAuction.bidsCount === 0 ? "Lance inicial" : "Lance atual"} • ao vivo
+                  </div>
+                  <div className="mt-1 text-4xl sm:text-5xl font-black text-yellow-400 tabular-nums">
+                    {brl(activeAuction.currentBid)}
+                  </div>
+                  <div className="mt-1 text-xs sm:text-sm text-slate-300 tabular-nums">
+                    {activeAuction.bidsCount} {activeAuction.bidsCount === 1 ? "lance" : "lances"}
+                    {remaining !== null && <> • termina em {formatRemaining(remaining)}</>}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-[11px] sm:text-xs font-bold text-slate-400">
+                    {discount && current.originalPrice ? (
+                      <>
+                        De <span className="line-through">{brl(current.originalPrice)}</span> por
+                      </>
+                    ) : (
+                      "Preço"
+                    )}
+                  </div>
+                  <div className="mt-1 text-4xl sm:text-5xl font-black text-white tabular-nums">
+                    {brl(current.price)}
+                  </div>
+                  <div className="mt-1 text-xs sm:text-sm font-bold text-emerald-400 tabular-nums">
+                    {brl(pixPrice)} no PIX (-5%)
+                  </div>
+                </>
+              )}
             </div>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-2.5 sm:gap-3 pt-1 sm:pt-2">
-              <Link
-                href={`/produto/${current.id}`}
-                className="px-5 sm:px-6 py-3.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-yellow-400/20 transition"
-              >
-                <Flame className="w-4 h-4 shrink-0" />
-                Ver carta e vídeo
-              </Link>
-              <button
-                type="button"
-                onClick={handleAdd}
-                className="px-5 py-3.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-white border border-slate-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition"
-              >
-                {justAdded ? (
-                  <>
-                    <Check className="w-4 h-4 text-emerald-400 shrink-0" /> Adicionado ao carrinho
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart className="w-4 h-4 text-yellow-400 shrink-0" /> Adicionar ao carrinho
-                  </>
-                )}
-              </button>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-2.5 sm:gap-3">
+              {activeAuction ? (
+                <>
+                  <Link
+                    href="/leiloes"
+                    className="px-5 sm:px-6 py-3.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-yellow-400/20 transition"
+                  >
+                    <Gavel className="w-4 h-4 shrink-0" />
+                    Dar lance agora
+                  </Link>
+                  <Link
+                    href={`/produto/${current.id}`}
+                    className="px-5 py-3.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-white border border-slate-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition"
+                  >
+                    Ver carta
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href={`/produto/${current.id}`}
+                    className="px-5 sm:px-6 py-3.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-yellow-400/20 transition"
+                  >
+                    <Flame className="w-4 h-4 shrink-0" />
+                    Ver carta e vídeo
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={handleAdd}
+                    className="px-5 py-3.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-white border border-slate-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition"
+                  >
+                    {justAdded ? (
+                      <>
+                        <Check className="w-4 h-4 text-emerald-400 shrink-0" /> Adicionado
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingCart className="w-4 h-4 text-yellow-400 shrink-0" /> Adicionar ao carrinho
+                      </>
+                    )}
+                  </button>
+                </>
+              )}
             </div>
-          </div>
-
-          {/* Carta em destaque com brilho */}
-          <div className="lg:col-span-5 flex justify-center relative order-1 lg:order-2 pt-2 lg:pt-0">
-            <Link
-              href={`/produto/${current.id}`}
-              className="relative group"
-              aria-label={`Ver detalhes: ${current.title}`}
-            >
-              <div className="absolute -inset-4 bg-gradient-to-r from-yellow-400/30 via-purple-500/30 to-cyan-400/30 rounded-3xl blur-2xl opacity-75 group-hover:opacity-100 transition" />
-              <img
-                key={current.id}
-                src={current.images[0]}
-                alt={current.title}
-                className="relative w-44 sm:w-60 lg:w-72 h-auto object-contain rounded-2xl shadow-2xl transform group-hover:scale-105 group-hover:-rotate-1 transition duration-500 border border-white/10"
-              />
-            </Link>
           </div>
         </div>
 

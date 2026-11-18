@@ -16,6 +16,7 @@ import {
   Video,
 } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
+import { ProductImporter } from "@/components/ProductImporter";
 import { uploadProductMedia } from "@/lib/supabase";
 import {
   CardCondition,
@@ -297,6 +298,8 @@ export default function AdminDashboardPage() {
 
       {/* ABA 1: GESTÃO DE CATÁLOGO (CRUD COMPLETO DE SINGLES E ETBs + FOTOS HI-RES + VÍDEO HOLOGRAFIA) */}
       {activeTab === "CATALOG" && (
+        <div className="space-y-8">
+        <ProductImporter />
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Formulário de Inserção / Edição */}
           <form
@@ -565,6 +568,7 @@ export default function AdminDashboardPage() {
               </div>
             ))}
           </div>
+        </div>
         </div>
       )}
 
