@@ -133,7 +133,7 @@ export function Navbar() {
 
             <Link
               href="/admin"
-              className={`px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition ${
+              className={`hidden sm:flex px-3 py-2.5 rounded-xl text-xs font-semibold items-center gap-1.5 border transition ${
                 user.role === "ADMIN"
                   ? "bg-purple-500/20 text-purple-300 border-purple-500/40"
                   : "bg-slate-900/80 hover:bg-slate-800 text-slate-400 border-slate-800"
@@ -155,7 +155,7 @@ export function Navbar() {
 
             <button
               onClick={() => setCartOpen(true)}
-              className="relative px-3 sm:px-3.5 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 sm:gap-2 transition shadow-md shadow-yellow-400/10"
+              className="relative hidden sm:flex px-3 sm:px-3.5 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-extrabold text-xs items-center gap-1.5 sm:gap-2 transition shadow-md shadow-yellow-400/10"
             >
               <ShoppingBag className="w-4 h-4" />
               <span className="hidden sm:inline">Carrinho</span>
