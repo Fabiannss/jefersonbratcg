@@ -20,6 +20,7 @@ import {
   X,
 } from "lucide-react";
 import { useStore } from "@/context/StoreContext";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -127,6 +128,8 @@ export function Navbar() {
               <Gavel className="w-3.5 h-3.5 text-red-400 animate-pulse" />
               <span>Leilões Ao Vivo</span>
             </Link>
+
+            <ThemeToggle />
 
             <Link
               href="/admin"
