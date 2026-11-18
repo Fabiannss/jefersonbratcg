@@ -116,7 +116,7 @@ export function Navbar() {
           </div>
 
           {/* Ações Rápidas: Links, Perfil & Carrinho */}
-          <div className="flex items-center gap-2 order-2 lg:order-3">
+          <div className="flex items-center gap-2 ml-auto lg:ml-0 order-2 lg:order-3">
             <Link
               href="/leiloes"
               className={`hidden sm:flex px-3.5 py-2.5 rounded-xl text-xs font-bold items-center gap-1.5 transition border ${
@@ -143,12 +143,12 @@ export function Navbar() {
               {user.role === "ADMIN" ? (
                 <>
                   <ShieldCheck className="w-4 h-4 text-purple-400" />
-                  <span className="hidden md:inline">Admin</span>
+                  <span className="hidden lg:inline">Admin</span>
                 </>
               ) : (
                 <>
                   <User className="w-4 h-4 text-slate-400" />
-                  <span className="hidden md:inline">Admin</span>
+                  <span className="hidden lg:inline">Admin</span>
                 </>
               )}
             </Link>
